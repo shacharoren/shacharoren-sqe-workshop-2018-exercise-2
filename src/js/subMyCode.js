@@ -50,19 +50,19 @@ export function processLine(line,index){
 }
 
 export function processElseIf(line,index){
-    if(line.includes('else if (')){
-        if(bool)
-            colors[index] = 'red';
-        else {
-            bool = chooseMyColor(line);
-            if(bool==true){
-                colors[index]='green';
-            }
-            else{
-                colors[index]='red';
-            }
+    //if(line.includes('else if (')){
+    if(bool)
+        colors[index] = 'red';
+    else {
+        bool = chooseMyColor(line);
+        if(bool==true){
+            colors[index]='green';
+        }
+        else{
+            colors[index]='red';
         }
     }
+    //}
     return bool;
 }
 

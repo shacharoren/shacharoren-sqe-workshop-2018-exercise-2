@@ -50,6 +50,16 @@ export function divideCode(json, locals){
 
 }
 
+export function rowIdentifier(json, locals){
+    let nameOfJason=json.name;
+    //if(nameOfJason) {
+    if (json.name in locals) {
+        json = locals[nameOfJason];
+    }
+    //}
+    return json;
+}
+
 export function rowBlockStatement(code, locals){
     let count=0;
     while(count<code.body.length){
@@ -81,15 +91,10 @@ export function rowArrayExpression(json, locals){
     return json;
 }
 
-export function rowExpressionStatement(json, locals){
-    json.expression = ridAllLocals(json.expression,locals);
-
-    if(!(json.expression))
-    {
-        //here delete exp
-        delete json.expression;
-        return;
-    }
+export function rowWhileStatement(json, locals){
+    let copy = Object.assign({}, locals);
+    json.test = ridAllLocals(json.test,locals);
+    json.body = ridAllLocals(json.body,copy);
     return json;
 }
 
@@ -101,16 +106,6 @@ export function rowVariableDeclaration(json, locals){
     //  }
 
     return;
-}
-
-export function rowIdentifier(json, locals){
-    let nameOfJason=json.name;
-    //if(nameOfJason) {
-    if (json.name in locals) {
-        json = locals[nameOfJason];
-    }
-    //}
-    return json;
 }
 
 export function rowMemberExpression(json, locals){
@@ -127,6 +122,7 @@ export function rowBinaryExpression(json, locals){
     let left=json.left;
     let right=json.right;
     if(left!=null&&right!=null) {
+
         json.left = ridAllLocals(left, locals);
         json.right = ridAllLocals(right, locals);
     }
@@ -135,25 +131,15 @@ export function rowBinaryExpression(json, locals){
     return reqBinaryExpression(json);
 }
 
-export function reqBinaryExpression(json){
-    if(json.left.type === 'Literal' && json.right.type === 'Literal')
-        return {'type': 'Literal', 'value': eval(json.left.raw + ' ' + json.operator + ' ' + json.right.raw), 'raw': eval(json.left.raw + ' ' + json.operator + ' ' + json.right.raw).toString()};
-    if(json.right.type == 'BinaryExpression') {
-        json.right = reqBinaryExpression(json.right);
+export function rowExpressionStatement(json, locals){
+    json.expression = ridAllLocals(json.expression,locals);
+
+    if(!(json.expression))
+    {
+        //here delete exp
+        delete json.expression;
+        return;
     }
-    if(json.left.type === 'BinaryExpression') {
-        json.left = reqBinaryExpression(json.left);
-    }
-
-    return json;
-}
-
-export function rowUnaryExpression(json, locals){
-    let arg=json.argument;
-
-    //if(arg) {
-    json.argument = ridAllLocals(arg, locals);
-    //}
     return json;
 }
 
@@ -196,9 +182,25 @@ export function rowIfStatement(code, locals){
     return code;
 }
 
-export function rowWhileStatement(json, locals){
-    let copy = Object.assign({}, locals);
-    json.test = ridAllLocals(json.test,locals);
-    json.body = ridAllLocals(json.body,copy);
+export function rowUnaryExpression(json, locals){
+    let arg=json.argument;
+
+    //if(arg) {
+    json.argument = ridAllLocals(arg, locals);
+    //}
     return json;
 }
+
+export function reqBinaryExpression(json){
+    if(json.left.type === 'Literal' && json.right.type === 'Literal')
+        return {'type': 'Literal', 'value': eval(json.left.raw + ' ' + json.operator + ' ' + json.right.raw), 'raw': eval(json.left.raw + ' ' + json.operator + ' ' + json.right.raw).toString()};
+    if(json.right.type == 'BinaryExpression') {
+        json.right = reqBinaryExpression(json.right);
+    }
+    if(json.left.type === 'BinaryExpression') {
+        json.left = reqBinaryExpression(json.left);
+    }
+
+    return json;
+}
+
